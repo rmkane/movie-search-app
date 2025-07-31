@@ -1,0 +1,7 @@
+# Ignore build artifacts
+node_modules/
+dist/
+bun.lock
+
+# Ignore config files that don't need formatting
+tsconfig.json

@@ -1,25 +1,42 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import { z } from 'zod'
+
+import type { Movie } from './types'
+import { MovieSchema } from './schemas'
+import { tryFetch } from './utils'
+import { MovieCard } from './components/MovieCard'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [movies, setMovies] = useState<Movie[]>([])
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      const [error, response] = await tryFetch('http://localhost:3000/movies')
+      if (error) {
+        console.error(error)
+        return
+      }
+      if (!response?.ok) {
+        console.error('Failed to fetch movies')
+        return
+      }
+
+      const data = await response.json()
+      const movies = z.array(MovieSchema).parse(data)
+      setMovies(movies)
+    }
+    fetchMovies()
+  }, [])
 
   return (
     <>
-      <h1 className="text-4xl font-bold">Vite + React</h1>
-      <div className="card flex flex-col items-center gap-2">
-        <button
-          className="rounded-md bg-blue-500 px-4 py-2 text-white"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <h1 className="text-4xl font-bold">Movies</h1>
+      <div className="grid grid-cols-4 gap-4">
+        {movies.map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
